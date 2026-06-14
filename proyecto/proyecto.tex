@@ -1,0 +1,82 @@
+\documentclass[12pt]{article}
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{lmodern}
+\else
+  \usepackage{fontspec}
+\fi
+
+\usepackage[margin=1in]{geometry}
+\usepackage[spanish, es-tabla]{babel}
+\AtBeginDocument{\selectlanguage{spanish}}
+
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{microtype}
+%\usepackage{biblatex}
+%\addbibresource{refs.bib}
+
+\usepackage{lipsum}
+
+\setlist[itemize]{leftmargin=*, itemsep=0.35em}
+\graphicspath{{proyecto/figures/}{figures/}}
+\newcommand{\institucion}{Universidad de Costa Rica}
+\newcommand{\campus}{Ciudad Universitaria Rodrigo Facio}
+\newcommand{\facultad}{Facultad de Ciencias Básicas}
+\newcommand{\escuela}{Escuela de Física}
+\newcommand{\curso}{FS0534 | Mecánica Teórica I | 2026-I}
+\newcommand{\tituloanteproyecto}{Tarea Programada}
+\newcommand{\titulo}{<TITULO>}
+\newcommand{\autor}{Gustavo A. Calvo Gutiérrez}
+\newcommand{\lugarfecha}{San José, 2026.}
+
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+    \LARGE \textbf{\textsc{\institucion}}
+    \Large
+    \\[1cm]
+    \textsc{\campus}
+    \\[0.1cm]
+    \textsc{\facultad}
+    \\[0.1cm]
+    \textsc{\escuela} \\
+    \vspace*{20 mm}
+    \LARGE{\textsc{\textbf{\curso}}}
+  \end{center}
+
+  \vspace{2cm}
+
+  \hrulefill
+  \begin{center}
+    \large \textbf{\textsc{\tituloanteproyecto}}
+    \\[0.5cm]
+    \textsc{\titulo}
+  \end{center}
+  \hrulefill
+
+  \vfill
+
+  \begin{center}
+    \large \textbf{\autor}
+  \end{center}
+
+  \vspace{1cm}
+
+  \begin{center}
+    \textit{\lugarfecha}
+  \end{center}
+\end{titlepage}
+
+\lipsum
+
+%\newpage
+%\printbibliography
+
+\end{document}
