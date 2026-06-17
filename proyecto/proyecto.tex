@@ -16,14 +16,15 @@
 \AtBeginDocument{\selectlanguage{spanish}}
 
 \usepackage{enumitem}
-\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{fancyvrb}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
 \usepackage{microtype}
-%\usepackage{biblatex}
-%\addbibresource{refs.bib}
 
-\usepackage{lipsum}
-
-\setlist[itemize]{leftmargin=*, itemsep=0.35em}
+\setlist[itemize]{leftmargin=*, itemsep=0.15em, topsep=0.2em}
+\setlength{\parskip}{0.2em}
 \graphicspath{{proyecto/figures/}{figures/}}
 \newcommand{\institucion}{Universidad de Costa Rica}
 \newcommand{\campus}{Ciudad Universitaria Rodrigo Facio}
@@ -31,7 +32,7 @@
 \newcommand{\escuela}{Escuela de Física}
 \newcommand{\curso}{FS0534 | Mecánica Teórica I | 2026-I}
 \newcommand{\tituloanteproyecto}{Tarea Programada}
-\newcommand{\titulo}{<TITULO>}
+\newcommand{\titulo}{Robustez de una transferencia orbital de Hohmann bajo incertidumbre en los impulsos}
 \newcommand{\autor}{Gustavo A. Calvo Gutiérrez}
 \newcommand{\lugarfecha}{San José, 2026.}
 
@@ -74,9 +75,292 @@
   \end{center}
 \end{titlepage}
 
-\lipsum
+\section{Introducción}
 
-%\newpage
-%\printbibliography
+Una transferencia de Hohmann es una maniobra de dos impulsos que conecta dos
+órbitas circulares coplanares mediante una elipse tangente a ambas órbitas. Su
+importancia está en que da una referencia de bajo consumo para elevar satélites,
+planear cambios de órbita y estimar combustible en misiones preliminares
+\cite{bate1971,curtis2020}. El modelo ideal supone radios, velocidades y
+direcciones perfectamente conocidas; sin embargo, una ejecución real tiene
+errores de navegación, medición y empuje. Este proyecto estudia qué tan robusta
+es la maniobra cuando los impulsos se perturban aleatoriamente.
+
+La pregunta de investigación es: ¿cuál es la probabilidad de terminar cerca de
+la órbita objetivo si los impulsos de una transferencia de Hohmann tienen
+incertidumbre pequeña? Además se compara la sensibilidad ante errores de
+magnitud y dirección, se valida la conservación de invariantes durante tramos
+sin empuje y se mide el alejamiento de la órbita circular deseada.
+
+\section{Marco teórico}
+
+Se usa el problema restringido de dos cuerpos: una partícula de prueba se mueve
+bajo la gravedad de un cuerpo central de parámetro gravitacional $\mu=GM$,
+\begin{equation}
+  \ddot{\mathbf r}=-\frac{\mu}{r^3}\mathbf r .
+\end{equation}
+En ausencia de impulsos, la energía mecánica específica y el momento angular
+específico se conservan,
+\begin{equation}
+  E=\frac{1}{2}v^2-\frac{\mu}{r}, \qquad
+  h=|\mathbf r\times\mathbf v|.
+\end{equation}
+Estos invariantes sirven para verificar la integración numérica y para obtener
+el semieje mayor y la excentricidad de la órbita final \cite{vallado2013}:
+\begin{equation}
+  a=-\frac{\mu}{2E}, \qquad
+  e=\sqrt{1+\frac{2Eh^2}{\mu^2}} .
+\end{equation}
+
+Para radios circulares $r_1$ y $r_2$, la elipse de transferencia tiene
+$a_t=(r_1+r_2)/2$. La velocidad circular es
+$v_c=\sqrt{\mu/r}$ y la velocidad sobre la elipse se calcula con vis-viva,
+\begin{equation}
+  v_t^2=\mu\left(\frac{2}{r}-\frac{1}{a_t}\right).
+\end{equation}
+Los impulsos ideales son $\Delta v_1=v_{t,p}-v_{c1}$ y
+$\Delta v_2=v_{c2}-v_{t,a}$, y el tiempo de vuelo es
+$T_t=\pi\sqrt{a_t^3/\mu}$.
+
+La incertidumbre se modela con variables normales independientes. Para cada
+impulso se perturba la magnitud con
+$\epsilon_v\sim\mathcal N(0,\sigma_v^2)$ y la dirección tangencial con
+$\epsilon_\theta\sim\mathcal N(0,\sigma_\theta^2)$. La probabilidad de éxito se
+estima por Monte Carlo \cite{metropolis1949}:
+\begin{equation}
+  P(\text{exito}) \approx \frac{N_{\text{exitosas}}}{N_{\text{total}}}.
+\end{equation}
+Formalmente, si $X_i$ es la variable indicadora de la $i$-ésima simulación,
+entonces
+\begin{equation}
+  X_i =
+  \begin{cases}
+    1, & \text{si la maniobra cumple el criterio de exito},\\
+    0, & \text{si no lo cumple},
+  \end{cases}
+  \qquad X_i\sim\mathrm{Bernoulli}(p).
+\end{equation}
+El estimador usado es la media muestral
+\begin{equation}
+  \hat p=\frac{1}{N}\sum_{i=1}^{N}X_i, \qquad
+  \operatorname{E}[\hat p]=p, \qquad
+  \mathrm{Var}(\hat p)=\frac{p(1-p)}{N}.
+\end{equation}
+Así, el valor de expectación de $\hat p$ es la probabilidad real de éxito bajo
+el modelo de incertidumbre elegido. Aumentar $N$ no cambia ese valor esperado,
+pero reduce la dispersión estadística de la estimación.
+El objetivo de esta parte estocástica no es reemplazar la solución determinista
+de Hohmann, sino medir la confiabilidad de esa solución cuando la ejecución no
+es perfecta. Cada simulación representa una maniobra plausible: un motor que
+entrega un poco más o menos velocidad, o una orientación ligeramente desviada
+del vector tangencial ideal. Al repetir el experimento muchas veces se obtiene
+una distribución de órbitas finales, no un único resultado. Esa distribución
+permite estimar riesgo: qué fracción de trayectorias queda dentro de tolerancia,
+cuáles fallan y por qué tipo de error fallan.
+
+Esto es importante porque una trayectoria indeseada puede parecer aceptable si
+solo se observa la posición instantánea. Por ejemplo, una nave puede llegar
+cerca de $r_2$ en el momento del segundo impulso, pero con velocidad demasiado
+alta por un error positivo en $\Delta v_1$. El segundo impulso entonces no
+circulariza bien: la órbita final queda elíptica, cruza la región objetivo una
+sola vez y luego se aleja a un apoapsis mayor. En una misión real eso implicaría
+usar combustible adicional, perder una ventana de comunicación o entrar en una
+órbita que interfiere con corredores operacionales. La simulación Monte Carlo
+anticipa ese tipo de casos antes de ejecutar la maniobra.
+
+\section{Descripción del problema}
+
+Se simula una transferencia desde una órbita baja terrestre circular de
+$r_1=6678.137\,\mathrm{km}$ hasta una órbita circular geoestacionaria de
+$r_2=42164\,\mathrm{km}$, con $\mu=398600.4418\,\mathrm{km^3\,s^{-2}}$. La
+condición inicial es $\mathbf r_0=(r_1,0)$ y
+$\mathbf v_0=(0,\sqrt{\mu/r_1})$. Con estas constantes, la transferencia ideal
+requiere
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Cantidad & Valor & Unidad \\
+\midrule
+$\Delta v_1$ & 2.42573 & km/s \\
+$\Delta v_2$ & 1.46682 & km/s \\
+$T_t$ & 5.275 & h \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Una corrida se considera exitosa si, después del segundo impulso, el semieje
+mayor satisface $|a-r_2|/r_2<2\%$ y la excentricidad final cumple $e<0.02$.
+Este criterio exige estar cerca de la energía orbital correcta y no solo cruzar
+el radio objetivo.
+
+\section{Solución numérica y código}
+
+El archivo \texttt{proyecto/simular\_hohmann.py} organiza la solución en
+funciones separadas para aceleración gravitatoria, invariantes, cálculo de
+Hohmann, integración, aplicación de impulsos, transferencia individual y Monte
+Carlo. La integración usa \texttt{solve\_ivp} con el método DOP853 y tolerancias
+\texttt{rtol=1e-10}, \texttt{atol=1e-12}. Los impulsos se aplican como cambios
+instantáneos de velocidad en la dirección tangencial local, rotada por el error
+angular aleatorio.
+
+Los fragmentos esenciales del código son los que implementan la dinámica, los
+impulsos ideales, la perturbación aleatoria y el conteo de éxitos. Primero, la
+ecuación diferencial usa el estado $(x,y,v_x,v_y)$:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+def aceleracion_gravitatoria(_t, y, mu=MU):
+    r = y[:2]
+    v = y[2:]
+    rn = np.linalg.norm(r)
+    a = -mu * r / rn**3
+    return np.array([v[0], v[1], a[0], a[1]])
+\end{Verbatim}
+
+Luego se calculan los dos impulsos de Hohmann con la ecuación vis-viva:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+def calcular_hohmann(r1=R1, r2=R2, mu=MU):
+    at = 0.5 * (r1 + r2)
+    vc1, vc2 = np.sqrt(mu / r1), np.sqrt(mu / r2)
+    vt1 = np.sqrt(mu * (2.0 / r1 - 1.0 / at))
+    vt2 = np.sqrt(mu * (2.0 / r2 - 1.0 / at))
+    tof = np.pi * np.sqrt(at**3 / mu)
+    return Hohmann(vt1 - vc1, vc2 - vt2, tof, at)
+\end{Verbatim}
+
+La incertidumbre entra al aplicar cada impulso: se suma un error de magnitud y
+se rota la dirección tangencial por un error angular.
+
+\begin{Verbatim}[fontsize=\footnotesize]
+e1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
+a1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
+y1 = aplicar_impulso(y0, h.dv1, e1, a1)
+\end{Verbatim}
+
+Finalmente, Monte Carlo repite la transferencia y registra si la órbita final
+cumple el criterio físico de semieje mayor y excentricidad:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+for i in range(n):
+    res = simular_transferencia(sigma_mag_rel, sigma_ang_deg, rng)
+    semiejes[i] = float(res["a"])
+    excentricidades[i] = float(res["e"])
+    exitos[i] = bool(res["exito"])
+probabilidad = float(np.mean(exitos))
+\end{Verbatim}
+
+La validación consistió en integrar una órbita circular completa sin impulsos.
+El error relativo máximo del radio fue $1.36\times10^{-10}$ y la variación
+relativa máxima de energía o momento angular fue $2.88\times10^{-10}$. Por eso,
+los cambios observados en Monte Carlo se atribuyen a los impulsos perturbados y
+no al error dominante del integrador.
+
+\section{Resultados}
+
+La Figura \ref{fig:orbitas} compara la elipse ideal con una trayectoria
+perturbada. La trayectoria nominal alcanza el apoapsis esperado y circulariza
+en la órbita objetivo; la perturbada llega cerca del radio deseado, pero con
+elementos orbitales finales ligeramente diferentes.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.68\linewidth]{orbitas.pdf}
+  \caption{Órbita inicial, órbita objetivo y transferencias ideal y perturbada.}
+  \label{fig:orbitas}
+\end{figure}
+
+Para el análisis estadístico se ejecutaron $1200$ simulaciones por nivel de
+incertidumbre. Se usó $\sigma_\theta=100\sigma_v$ grados cuando $\sigma_v$ se
+expresa como fracción relativa del impulso; por ejemplo, $\sigma_v=0.002$
+equivale a $0.2\%$ en magnitud y $\sigma_\theta=0.20^\circ$.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.68\linewidth]{probabilidad.pdf}
+  \caption{Probabilidad de éxito al aumentar la incertidumbre en los impulsos.}
+  \label{fig:prob}
+\end{figure}
+
+\begin{center}
+\begin{tabular}{ccccccc}
+\toprule
+$\sigma_v$ (\%) & 0.00 & 0.05 & 0.10 & 0.20 & 0.30 & 0.50 \\
+\midrule
+$P(\text{exito})$ & 1.000 & 1.000 & 1.000 & 0.963 & 0.838 & 0.578 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+La caída no es lineal: los errores muy pequeños casi siempre permanecen dentro
+del criterio, pero a partir de $0.2\%$ la cola de la distribución empieza a
+producir órbitas con energía o excentricidad fuera de tolerancia. En esas
+corridas fallidas no se observa un ``choque'' numérico, sino una órbita
+físicamente posible pero no deseada: el semieje mayor queda desplazado, la
+excentricidad crece y el satélite ya no permanece cerca del radio geoestacionario
+durante toda la revolución. Para
+$\sigma_v=0.2\%$ y $\sigma_\theta=0.20^\circ$, el semieje mayor promedio fue
+$42171.4\,\mathrm{km}$ y la excentricidad media $0.0079$.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.68\linewidth]{histograma.pdf}
+  \caption{Distribución del error relativo del semieje mayor final para
+  $\sigma_v=0.2\%$ y $\sigma_\theta=0.20^\circ$.}
+  \label{fig:hist}
+\end{figure}
+
+\section{Discusión y alcances}
+
+La transferencia de Hohmann conserva su utilidad como diseño inicial: en el
+caso ideal coloca la nave en la órbita objetivo con los dos impulsos mínimos
+del modelo coplanar. Sin embargo, la simulación muestra que la maniobra no es
+igualmente robusta para todos los niveles de error. La incertidumbre en la
+magnitud cambia directamente la energía orbital, mientras que el error angular
+introduce componentes radial y normal al impulso tangencial esperado; ambos
+efectos elevan la excentricidad y desplazan el semieje mayor final.
+
+El criterio usado es exigente pero realista para una primera circularización:
+no basta con estar cerca de $r_2$ en un instante, porque una órbita elíptica
+puede cruzar ese radio y aun así requerir correcciones posteriores. Las
+limitaciones principales son que se desprecia el arrastre atmosférico, no se
+incluyen perturbaciones de la Luna, el Sol ni el achatamiento terrestre, se
+suponen impulsos instantáneos y el movimiento es estrictamente coplanar. Una
+extensión natural sería estimar el combustible de corrección necesario para las
+corridas fallidas.
+
+\section{Conclusiones}
+
+El proyecto implementó una simulación numérica reproducible de una transferencia
+de Hohmann Tierra--GEO y la evaluó con Monte Carlo. La validación por
+conservación de radio, energía y momento angular mostró que el error numérico es
+mucho menor que las perturbaciones estudiadas. Con incertidumbres de hasta
+$0.1\%$ en magnitud y $0.10^\circ$ en dirección, todas las corridas quedaron
+dentro del criterio de éxito; con $0.5\%$ y $0.50^\circ$, la probabilidad cayó a
+$0.578$. Monte Carlo resultó útil porque convierte errores pequeños de ejecución
+en una medida operacional: la probabilidad de terminar en una órbita final
+aceptable.
+
+\begin{thebibliography}{9}
+
+\bibitem{bate1971}
+Roger R. Bate, Donald D. Mueller y Jerry E. White.
+\textit{Fundamentals of Astrodynamics}. Dover Publications, 1971.
+
+\bibitem{curtis2020}
+Howard D. Curtis.
+\textit{Orbital Mechanics for Engineering Students}. 4.a ed.,
+Butterworth-Heinemann, 2020.
+
+\bibitem{vallado2013}
+David A. Vallado.
+\textit{Fundamentals of Astrodynamics and Applications}. 4.a ed.,
+Microcosm Press, 2013.
+
+\bibitem{metropolis1949}
+Nicholas Metropolis y Stanislaw Ulam.
+``The Monte Carlo Method''. \textit{Journal of the American Statistical
+Association}, 44(247):335--341, 1949.
+
+\end{thebibliography}
 
 \end{document}
