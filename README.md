@@ -33,21 +33,19 @@ terminan realmente cerca de la órbita objetivo.
 
 La dinámica usa el problema restringido de dos cuerpos:
 
-```text
-r'' = -mu r / |r|^3
-```
+$\ddot{\mathbf r}=-\mu\mathbf r/|\mathbf r|^3$
 
 Para el caso Tierra-GEO se usan:
 
-- `mu = 398600.4418 km^3/s^2`
-- `r1 = 6678.137 km`
-- `r2 = 42164 km`
+- $\mu = 398600.4418\,\mathrm{km^3/s^2}$
+- $r_1 = 6678.137\,\mathrm{km}$
+- $r_2 = 42164\,\mathrm{km}$
 
 Con esos valores, la transferencia ideal calculada en el reporte requiere:
 
-- `Delta v1 = 2.42573 km/s`
-- `Delta v2 = 1.46682 km/s`
-- `T_t = 5.275 h`
+- $\Delta v_1 = 2.42573\,\mathrm{km/s}$
+- $\Delta v_2 = 1.46682\,\mathrm{km/s}$
+- $T_t = 5.275\,\mathrm{h}$
 
 Durante los tramos sin empuje se revisan energía mecánica específica y momento
 angular específico. Esto sirve para verificar que los cambios observados vienen
@@ -56,22 +54,22 @@ de los impulsos perturbados y no de error dominante del integrador.
 ## Simulación Monte Carlo
 
 El script `proyecto/simular_hohmann.py` repite la transferencia muchas veces.
-En cada corrida se perturban los dos impulsos con errores aleatorios:
+En cada simulación se perturban los dos impulsos con errores aleatorios:
 
 - error normal en la magnitud del impulso;
 - error normal en la dirección tangencial.
 
-Cada corrida representa una ejecución plausible de la maniobra: un motor que
+Cada simulación representa una ejecución plausible de la maniobra: un motor que
 entrega un poco más o menos velocidad, o una orientación ligeramente desviada
 del vector tangencial ideal. Después del segundo impulso se calculan el semieje
 mayor y la excentricidad de la órbita final.
 
-Una corrida se considera exitosa si:
+Una simulación se considera exitosa si:
 
-- `|a - r2| / r2 < 2%`
-- `e < 0.02`
+- $|a-r_2|/r_2<2\%$
+- $e<0.02$
 
-Este criterio es importante porque estar cerca de `r2` en un instante no
+Este criterio es importante porque estar cerca de $r_2$ en un instante no
 garantiza una órbita útil. Una trayectoria puede cruzar el radio objetivo, pero
 quedar con demasiada energía o excentricidad y alejarse después. Monte Carlo
 permite convertir esos errores pequeños de ejecución en una medida operacional:
@@ -106,7 +104,8 @@ ideal de forma geométrica:
 - órbita baja circular;
 - media elipse de transferencia de Hohmann;
 - órbita circular geoestacionaria;
-- panel con `r1`, `r2`, `mu`, `a_t`, `e_t`, `Delta v1`, `Delta v2` y `T_t`.
+- panel con $r_1$, $r_2$, $\mu$, $a_t$, $e_t$, $\Delta v_1$,
+  $\Delta v_2$ y $T_t$.
 
 La cámara orbita únicamente alrededor del satélite; se controla con arrastre
 izquierdo y rueda del mouse.

@@ -188,7 +188,7 @@ $T_t$ & 5.275 & h \\
 \end{tabular}
 \end{center}
 
-Una corrida se considera exitosa si, después del segundo impulso, el semieje
+Una simulación se considera exitosa si, después del segundo impulso, el semieje
 mayor satisface $|a-r_2|/r_2<2\%$ y la excentricidad final cumple $e<0.02$.
 Este criterio exige estar cerca de la energía orbital correcta y no solo cruzar
 el radio objetivo.
@@ -272,6 +272,7 @@ geoestacionaria. La cámara sólo orbita alrededor del satélite, de modo que el
 usuario observa la Tierra y las trayectorias desde el marco visual de la nave.
 Un panel en pantalla muestra cantidades usadas en el cálculo, entre ellas
 $r_1$, $r_2$, $\mu$, $a_t$, $e_t$, $\Delta v_1$, $\Delta v_2$ y $T_t$.
+La simulación está publicada en \url{https://tavocg.github.io/hohmann-sim/}.
 
 \begin{figure}[ht]
   \centering
@@ -320,7 +321,7 @@ $P(\text{exito})$ & 1.000 & 1.000 & 1.000 & 0.963 & 0.838 & 0.578 \\
 La caída no es lineal: los errores muy pequeños casi siempre permanecen dentro
 del criterio, pero a partir de $0.2\%$ la cola de la distribución empieza a
 producir órbitas con energía o excentricidad fuera de tolerancia. En esas
-corridas fallidas no se observa un ``choque'' numérico, sino una órbita
+simulaciones fallidas no se observa un ``choque'' numérico, sino una órbita
 físicamente posible pero no deseada: el semieje mayor queda desplazado, la
 excentricidad crece y el satélite ya no permanece cerca del radio geoestacionario
 durante toda la revolución. Para
@@ -352,7 +353,7 @@ limitaciones principales son que se desprecia el arrastre atmosférico, no se
 incluyen perturbaciones de la Luna, el Sol ni el achatamiento terrestre, se
 suponen impulsos instantáneos y el movimiento es estrictamente coplanar. Una
 extensión natural sería estimar el combustible de corrección necesario para las
-corridas fallidas.
+simulaciones fallidas.
 
 \section{Conclusiones}
 
@@ -360,7 +361,7 @@ El proyecto implementó una simulación numérica reproducible de una transferen
 de Hohmann Tierra--GEO y la evaluó con Monte Carlo. La validación por
 conservación de radio, energía y momento angular mostró que el error numérico es
 mucho menor que las perturbaciones estudiadas. Con incertidumbres de hasta
-$0.1\%$ en magnitud y $0.10^\circ$ en dirección, todas las corridas quedaron
+$0.1\%$ en magnitud y $0.10^\circ$ en dirección, todas las simulaciones quedaron
 dentro del criterio de éxito; con $0.5\%$ y $0.50^\circ$, la probabilidad cayó a
 $0.578$. Monte Carlo resultó útil porque convierte errores pequeños de ejecución
 en una medida operacional: la probabilidad de terminar en una órbita final
