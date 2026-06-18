@@ -1,3 +1,16 @@
 .tmp/
 *.pdf
 *.png
+
+# Local Python environment.
+.venv/
+
+# Godot local/editor cache. Godot regenerates this from tracked project files.
+sim/.godot/
+
+# Imported/generated model side products. The tracked GLB is the source asset.
+sim/assets/models/*.glb.source
+sim/assets/models/Dawn_uncompressed_*.webp
+sim/assets/models/Dawn_uncompressed_*.webp.import
+sim/assets/models/Dawn_uncompressed_*.png
+sim/assets/models/Dawn_uncompressed_*.png.import

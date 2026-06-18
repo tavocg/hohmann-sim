@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3 uid="uid://cqow47bch5ocs"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_hohmann"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_hohmann")
+
+[node name="SatellitePivot" type="Node3D" parent="."]
+
+[node name="SatelliteMount" type="Node3D" parent="SatellitePivot"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+fov = 52.0
+near = 0.05
+far = 120.0
+
+[node name="Hud" type="CanvasLayer" parent="."]
+
+[node name="InfoPanel" type="PanelContainer" parent="Hud"]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 640.0
+offset_bottom = 208.0
+
+[node name="InfoLabel" type="Label" parent="Hud/InfoPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Cargando simulacion..."
+autowrap_mode = 3
