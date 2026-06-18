@@ -255,6 +255,32 @@ relativa máxima de energía o momento angular fue $2.88\times10^{-10}$. Por eso
 los cambios observados en Monte Carlo se atribuyen a los impulsos perturbados y
 no al error dominante del integrador.
 
+\section{Visualización interactiva}
+
+Además del análisis numérico en Python, se construyó una visualización
+interactiva en Godot en el directorio \texttt{sim/}. La escena representa la
+Tierra como una esfera sin textura, las órbitas circular inicial y objetivo, y
+la elipse de transferencia de Hohmann. El satélite usa el modelo tridimensional
+\textit{Dawn} publicado por NASA como recurso 3D abierto
+\cite{nasaDawn3D} y se mueve con una trayectoria paramétrica basada en los
+mismos radios y constantes del modelo numérico.
+
+La simulación no reemplaza la integración Monte Carlo; su propósito es mostrar
+de forma geométrica la maniobra ideal: primero una órbita baja circular, luego
+la media elipse de transferencia y finalmente la órbita circular
+geoestacionaria. La cámara sólo orbita alrededor del satélite, de modo que el
+usuario observa la Tierra y las trayectorias desde el marco visual de la nave.
+Un panel en pantalla muestra cantidades usadas en el cálculo, entre ellas
+$r_1$, $r_2$, $\mu$, $a_t$, $e_t$, $\Delta v_1$, $\Delta v_2$ y $T_t$.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.82\linewidth]{screenshot.png}
+  \caption{Visualización interactiva en Godot de la transferencia de Hohmann
+  Tierra--GEO.}
+  \label{fig:godot}
+\end{figure}
+
 \section{Resultados}
 
 La Figura \ref{fig:orbitas} compara la elipse ideal con una trayectoria
@@ -360,6 +386,11 @@ Microcosm Press, 2013.
 Nicholas Metropolis y Stanislaw Ulam.
 ``The Monte Carlo Method''. \textit{Journal of the American Statistical
 Association}, 44(247):335--341, 1949.
+
+\bibitem{nasaDawn3D}
+NASA Science.
+``Dawn''. Recurso 3D GLB, 2025.
+\url{https://science.nasa.gov/3d-resources/dawn/}.
 
 \end{thebibliography}
 

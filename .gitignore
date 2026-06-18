@@ -1,6 +1,12 @@
 .tmp/
 *.pdf
 *.png
+!proyecto/figures/screenshot.png
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
 
 # Local Python environment.
 .venv/
