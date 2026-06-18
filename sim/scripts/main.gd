@@ -12,6 +12,8 @@ const TRANSFER_DURATION := 26.0
 const INITIAL_ORBIT_DURATION := 8.0
 const TARGET_ORBIT_DURATION := 14.0
 const CYCLE_DURATION := INITIAL_ORBIT_DURATION + TRANSFER_DURATION + TARGET_ORBIT_DURATION
+const MOUSE_ORBIT_SENSITIVITY := 0.008
+const TOUCH_ORBIT_SENSITIVITY := 0.0022
 
 var transfer_a := 0.5 * (R1 + R2)
 var transfer_e := (R2 - R1) / (R2 + R1)
@@ -22,8 +24,9 @@ var transfer_time_hours := 0.0
 var elapsed := 0.0
 var yaw := 0.0
 var pitch := -0.35
-var camera_distance := 8.0
+var camera_distance := 4.2
 var dragging := false
+var touch_dragging := false
 
 @onready var camera: Camera3D = $Camera3D
 @onready var satellite_pivot: Node3D = $SatellitePivot
@@ -56,8 +59,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			camera_distance = min(28.0, camera_distance + 0.7)
 	elif event is InputEventMouseMotion and dragging:
-		yaw -= event.relative.x * 0.008
-		pitch = clamp(pitch - event.relative.y * 0.008, -1.25, 1.1)
+		_orbit_camera(event.relative, MOUSE_ORBIT_SENSITIVITY)
+	elif event is InputEventScreenTouch:
+		if event.index == 0:
+			touch_dragging = event.pressed
+	elif event is InputEventScreenDrag and touch_dragging and event.index == 0:
+		_orbit_camera(event.relative, TOUCH_ORBIT_SENSITIVITY)
+
+
+func _orbit_camera(delta: Vector2, sensitivity: float) -> void:
+	yaw -= delta.x * sensitivity
+	pitch = clamp(pitch - delta.y * sensitivity, -1.25, 1.1)
 
 
 func _calculate_hohmann() -> void:

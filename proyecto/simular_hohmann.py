@@ -24,6 +24,7 @@ class Hohmann:
     at: float
 
 
+# solve_ivp exige una funcion f(t, y); el sistema es autonomo, por eso _t no se usa.
 def aceleracion_gravitatoria(_t: float, y: np.ndarray, mu: float = MU) -> np.ndarray:
     r = y[:2]
     v = y[2:]
