@@ -15,6 +15,7 @@ const CYCLE_DURATION := INITIAL_ORBIT_DURATION + TRANSFER_DURATION + TARGET_ORBI
 const MOUSE_ORBIT_SENSITIVITY := 0.008
 const TOUCH_ORBIT_SENSITIVITY := 0.0022
 
+# Parametros de la elipse: periapsis en R1 y apoapsis en R2.
 var transfer_a := 0.5 * (R1 + R2)
 var transfer_e := (R2 - R1) / (R2 + R1)
 var transfer_p := transfer_a * (1.0 - transfer_e * transfer_e)
@@ -45,6 +46,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# El tiempo se recicla para mostrar continuamente la maniobra completa.
 	elapsed = fmod(elapsed + delta, CYCLE_DURATION)
 	_update_satellite(elapsed)
 	_update_camera()
@@ -73,6 +75,7 @@ func _orbit_camera(delta: Vector2, sensitivity: float) -> void:
 
 
 func _calculate_hohmann() -> void:
+	# Los mismos calculos del reporte se repiten aqui para mostrar valores en pantalla.
 	var vc1 := sqrt(MU / R1)
 	var vc2 := sqrt(MU / R2)
 	var vt1 := sqrt(MU * (2.0 / R1 - 1.0 / transfer_a))
@@ -127,6 +130,7 @@ func _create_satellite() -> void:
 
 
 func _create_orbit_lines() -> void:
+	# Se dibujan las dos orbitas circulares y la media elipse de transferencia.
 	add_child(_make_orbit_line("OrbitaInicial", R1_U, Color(0.24, 0.72, 1.0, 0.72)))
 	add_child(_make_orbit_line("OrbitaObjetivoGEO", R2_U, Color(0.38, 0.9, 0.52, 0.65)))
 	add_child(_make_transfer_line())
@@ -151,6 +155,7 @@ func _make_transfer_line() -> MeshInstance3D:
 	var mesh := ImmediateMesh.new()
 	var material := _line_material(Color(1.0, 0.74, 0.22, 0.95))
 	mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP, material)
+	# Solo se necesita media elipse: de theta=0 en R1 a theta=pi en R2.
 	for i in range(181):
 		var theta := PI * float(i) / 180.0
 		mesh.surface_add_vertex(_orbital_position(transfer_radius(theta), theta))
@@ -176,6 +181,7 @@ func _update_satellite(t: float) -> void:
 	var phase := ""
 	var elapsed_transfer_hours := 0.0
 
+	# La animacion se divide en tres fases: orbita inicial, transferencia y GEO.
 	if t < INITIAL_ORBIT_DURATION:
 		var u := t / INITIAL_ORBIT_DURATION
 		theta = u * TAU
@@ -195,6 +201,7 @@ func _update_satellite(t: float) -> void:
 		phase = "Orbita circular GEO"
 
 	satellite_pivot.position = _orbital_position(radius_km * KM_TO_UNIT, theta)
+	# El modelo apunta hacia la Tierra para que su orientacion sea legible durante el recorrido.
 	satellite_mount.look_at(Vector3.ZERO, Vector3.UP)
 	satellite_mount.rotate_y(PI * 0.5)
 	_update_info(phase, radius_km, theta, elapsed_transfer_hours)
@@ -209,6 +216,7 @@ func _orbital_position(radius: float, theta: float) -> Vector3:
 
 
 func _update_camera() -> void:
+	# La camara orbita alrededor del satelite, no alrededor del origen.
 	var offset := Vector3(
 		cos(pitch) * cos(yaw),
 		sin(pitch),

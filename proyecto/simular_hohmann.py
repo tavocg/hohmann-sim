@@ -12,6 +12,8 @@ MU = 398600.4418  # km^3 s^-2, Tierra
 R_EARTH = 6378.137  # km
 R1 = R_EARTH + 300.0
 R2 = 42164.0
+# Criterios de aceptacion: la orbita final debe parecerse a una circular GEO,
+# no solo pasar momentaneamente por el radio objetivo.
 SUCCESS_A_REL = 0.02
 SUCCESS_E = 0.02
 
@@ -44,9 +46,11 @@ def momento_angular(y: np.ndarray) -> float:
 
 
 def calcular_hohmann(r1: float = R1, r2: float = R2, mu: float = MU) -> Hohmann:
+    # La elipse de Hohmann es tangente a las dos orbitas circulares.
     at = 0.5 * (r1 + r2)
     vc1 = np.sqrt(mu / r1)
     vc2 = np.sqrt(mu / r2)
+    # Estas velocidades salen del desarrollo energetico explicado en la metodologia.
     vt1 = np.sqrt(mu * (2.0 / r1 - 1.0 / at))
     vt2 = np.sqrt(mu * (2.0 / r2 - 1.0 / at))
     tof = np.pi * np.sqrt(at**3 / mu)
@@ -55,6 +59,7 @@ def calcular_hohmann(r1: float = R1, r2: float = R2, mu: float = MU) -> Hohmann:
 
 def integrar_orbita(y0: np.ndarray, tf: float, n: int = 700) -> tuple[np.ndarray, np.ndarray]:
     t_eval = np.linspace(0.0, tf, n)
+    # DOP853 se usa por su precision alta en problemas orbitales suaves.
     sol = solve_ivp(
         aceleracion_gravitatoria,
         (0.0, tf),
@@ -73,8 +78,10 @@ def aplicar_impulso(
     y: np.ndarray, dv_tangencial: float, error_mag: float = 0.0, error_ang: float = 0.0
 ) -> np.ndarray:
     r = y[:2]
+    # Para una orbita antihoraria, la direccion tangencial local es (-y, x).
     tangente = np.array([-r[1], r[0]]) / np.linalg.norm(r)
     c, s = np.cos(error_ang), np.sin(error_ang)
+    # El error angular rota el impulso; el error de magnitud cambia su modulo.
     direccion = np.array([c * tangente[0] - s * tangente[1], s * tangente[0] + c * tangente[1]])
     out = y.copy()
     out[2:] += (dv_tangencial + error_mag) * direccion
@@ -85,6 +92,7 @@ def elementos_orbitales(y: np.ndarray, mu: float = MU) -> tuple[float, float]:
     eps = energia(y, mu)
     h = momento_angular(y)
     a = -mu / (2.0 * eps)
+    # max evita una excentricidad imaginaria por redondeo cuando e debe ser 0.
     e2 = max(0.0, 1.0 + 2.0 * eps * h**2 / mu**2)
     return a, np.sqrt(e2)
 
@@ -98,11 +106,13 @@ def simular_transferencia(
     rng = np.random.default_rng(1234) if rng is None else rng
     h = calcular_hohmann()
     y0 = np.array([R1, 0.0, 0.0, np.sqrt(MU / R1)])
+    # Primer impulso: inyecta la nave en la elipse de transferencia.
     e1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
     a1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
     y1 = aplicar_impulso(y0, h.dv1, e1, a1)
     _, ys = integrar_orbita(y1, h.tof, n=900 if trayectoria else 2)
     yf = ys[-1]
+    # Segundo impulso: intenta circularizar en el apoapsis de la transferencia.
     e2 = rng.normal(0.0, sigma_mag_rel * h.dv2)
     a2 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
     y2 = aplicar_impulso(yf, h.dv2, e2, a2)
@@ -119,6 +129,7 @@ def simular_monte_carlo(
     excentricidades = np.empty(n)
     exitos = np.empty(n, dtype=bool)
     for i in range(n):
+        # Cada iteracion representa una ejecucion posible de los dos impulsos.
         res = simular_transferencia(sigma_mag_rel, sigma_ang_deg, rng)
         semiejes[i] = float(res["a"])
         excentricidades[i] = float(res["e"])
@@ -135,6 +146,7 @@ def validar_orbita_circular() -> tuple[float, float]:
     y0 = np.array([R1, 0.0, 0.0, np.sqrt(MU / R1)])
     periodo = 2.0 * np.pi * np.sqrt(R1**3 / MU)
     _, ys = integrar_orbita(y0, periodo, n=1200)
+    # En una orbita circular sin impulsos, radio, energia y momento deben conservarse.
     radios = np.linalg.norm(ys[:, :2], axis=1)
     energias = np.array([energia(y) for y in ys])
     momentos = np.array([momento_angular(y) for y in ys])

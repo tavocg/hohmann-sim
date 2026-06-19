@@ -113,14 +113,46 @@ el semieje mayor y la excentricidad de la órbita final \cite{vallado2013}:
 \end{equation}
 
 Para radios circulares $r_1$ y $r_2$, la elipse de transferencia tiene
-$a_t=(r_1+r_2)/2$. La velocidad circular es
-$v_c=\sqrt{\mu/r}$ y la velocidad sobre la elipse se calcula con vis-viva,
+$a_t=(r_1+r_2)/2$. Siguiendo el desarrollo energético de una transferencia de
+Hohmann en \textit{Classical Dynamics of Particles and Systems}
+\cite{thornton2003}, si $k=GMm$ entonces la rapidez circular inicial es
 \begin{equation}
-  v_t^2=\mu\left(\frac{2}{r}-\frac{1}{a_t}\right).
+  v_1=\sqrt{\frac{k}{m r_1}}=\sqrt{\frac{\mu}{r_1}}.
 \end{equation}
-Los impulsos ideales son $\Delta v_1=v_{t,p}-v_{c1}$ y
-$\Delta v_2=v_{c2}-v_{t,a}$, y el tiempo de vuelo es
-$T_t=\pi\sqrt{a_t^3/\mu}$.
+Además,
+\begin{equation}
+  2a_t=r_1+r_2.
+\end{equation}
+La energía de la elipse de transferencia en el periapsis es
+\begin{equation}
+  E_t=-\frac{k}{r_1+r_2}
+  =\frac{1}{2}m v_{t1}^2-\frac{k}{r_1},
+\end{equation}
+de donde se despeja la rapidez en el periapsis de la transferencia,
+\begin{equation}
+  v_{t1}
+  =\sqrt{\frac{2k}{m r_1}\left(\frac{r_2}{r_1+r_2}\right)}
+  =\sqrt{\mu\left(\frac{2}{r_1}-\frac{1}{a_t}\right)}.
+\end{equation}
+El primer impulso es, por tanto,
+\begin{equation}
+  \Delta v_1=v_{t1}-v_1.
+\end{equation}
+De forma análoga, para circularizar en $r_2$ se usa
+\begin{equation}
+  v_2=\sqrt{\frac{k}{m r_2}}=\sqrt{\frac{\mu}{r_2}},
+\end{equation}
+y la rapidez de la elipse en el apoapsis es
+\begin{equation}
+  v_{t2}
+  =\sqrt{\frac{2k}{m r_2}\left(\frac{r_1}{r_1+r_2}\right)}
+  =\sqrt{\mu\left(\frac{2}{r_2}-\frac{1}{a_t}\right)}.
+\end{equation}
+Así, el segundo impulso y el tiempo de vuelo son
+\begin{equation}
+  \Delta v_2=v_2-v_{t2}, \qquad
+  T_t=\pi\sqrt{\frac{a_t^3}{\mu}}.
+\end{equation}
 
 La incertidumbre se modela con variables normales independientes. Para cada
 impulso se perturba la magnitud con
@@ -203,12 +235,25 @@ Carlo. La integración usa \texttt{solve\_ivp} con el método DOP853 y toleranci
 instantáneos de velocidad en la dirección tangencial local, rotada por el error
 angular aleatorio.
 
+El método numérico principal está en Python. \texttt{DOP853} es un método de
+Runge--Kutta explícito de orden alto, adecuado para integrar con precisión la
+ecuación diferencial del problema de dos cuerpos durante los tramos sin empuje.
+Se eligió porque la dinámica gravitatoria usada es suave y porque permite
+tolerancias estrictas sin introducir un error comparable con las perturbaciones
+de los impulsos. En cambio, el código de Godot no resuelve numéricamente la
+ecuación diferencial: la visualización usa la solución geométrica de Hohmann y
+evalúa directamente la ecuación polar de la elipse,
+$r(\theta)=p/(1+e\cos\theta)$, para ubicar el satélite durante la animación.
+Por eso la parte de GDScript es una representación paramétrica de la trayectoria
+ideal, no un integrador orbital independiente.
+
 Los fragmentos esenciales del código son los que implementan la dinámica, los
 impulsos ideales, la perturbación aleatoria y el conteo de éxitos. Primero, la
 ecuación diferencial usa el estado $(x,y,v_x,v_y)$:
 
 \begin{Verbatim}[fontsize=\footnotesize]
 def aceleracion_gravitatoria(_t, y, mu=MU):
+    # Estado: y = (x, y, vx, vy). La fuerza central apunta hacia la Tierra.
     r = y[:2]
     v = y[2:]
     rn = np.linalg.norm(r)
@@ -220,8 +265,10 @@ Luego se calculan los dos impulsos de Hohmann con la ecuación vis-viva:
 
 \begin{Verbatim}[fontsize=\footnotesize]
 def calcular_hohmann(r1=R1, r2=R2, mu=MU):
+    # La elipse de transferencia es tangente a ambas órbitas circulares.
     at = 0.5 * (r1 + r2)
     vc1, vc2 = np.sqrt(mu / r1), np.sqrt(mu / r2)
+    # Estas velocidades salen del desarrollo energético de la metodología.
     vt1 = np.sqrt(mu * (2.0 / r1 - 1.0 / at))
     vt2 = np.sqrt(mu * (2.0 / r2 - 1.0 / at))
     tof = np.pi * np.sqrt(at**3 / mu)
@@ -232,6 +279,7 @@ La incertidumbre entra al aplicar cada impulso: se suma un error de magnitud y
 se rota la dirección tangencial por un error angular.
 
 \begin{Verbatim}[fontsize=\footnotesize]
+# Error de magnitud en km/s y error angular convertido a radianes.
 e1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
 a1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
 y1 = aplicar_impulso(y0, h.dv1, e1, a1)
@@ -242,6 +290,7 @@ cumple el criterio físico de semieje mayor y excentricidad:
 
 \begin{Verbatim}[fontsize=\footnotesize]
 for i in range(n):
+    # Cada iteración es una ejecución posible de los dos impulsos.
     res = simular_transferencia(sigma_mag_rel, sigma_ang_deg, rng)
     semiejes[i] = float(res["a"])
     excentricidades[i] = float(res["e"])
@@ -273,6 +322,43 @@ usuario observa la Tierra y las trayectorias desde el marco visual de la nave.
 Un panel en pantalla muestra cantidades usadas en el cálculo, entre ellas
 $r_1$, $r_2$, $\mu$, $a_t$, $e_t$, $\Delta v_1$, $\Delta v_2$ y $T_t$.
 La simulación está publicada en \url{https://tavocg.github.io/hohmann-sim/}.
+
+Las líneas principales de \texttt{sim/scripts/main.gd} también están comentadas
+para dejar explícita la correspondencia entre la visualización y el modelo
+físico. El cálculo de Hohmann, la construcción de la elipse y la actualización
+del satélite se resumen así:
+
+\begin{Verbatim}[fontsize=\footnotesize]
+# Parametros de la elipse: periapsis en R1 y apoapsis en R2.
+var transfer_a := 0.5 * (R1 + R2)
+var transfer_e := (R2 - R1) / (R2 + R1)
+var transfer_p := transfer_a * (1.0 - transfer_e * transfer_e)
+
+func _calculate_hohmann() -> void:
+    # Los mismos calculos del reporte se repiten aqui para mostrar valores.
+    var vc1 := sqrt(MU / R1)
+    var vc2 := sqrt(MU / R2)
+    var vt1 := sqrt(MU * (2.0 / R1 - 1.0 / transfer_a))
+    var vt2 := sqrt(MU * (2.0 / R2 - 1.0 / transfer_a))
+    dv1 = vt1 - vc1
+    dv2 = vc2 - vt2
+    transfer_time_hours = PI * sqrt(pow(transfer_a, 3.0) / MU) / 3600.0
+
+func _make_transfer_line() -> MeshInstance3D:
+    # Solo se necesita media elipse: de theta=0 en R1 a theta=pi en R2.
+    for i in range(181):
+        var theta := PI * float(i) / 180.0
+        mesh.surface_add_vertex(_orbital_position(transfer_radius(theta), theta))
+
+func _update_satellite(t: float) -> void:
+    # La animacion se divide en tres fases: orbita inicial, transferencia y GEO.
+    if t < INITIAL_ORBIT_DURATION:
+        radius_km = R1
+    elif t < INITIAL_ORBIT_DURATION + TRANSFER_DURATION:
+        radius_km = transfer_radius(theta)
+    else:
+        radius_km = R2
+\end{Verbatim}
 
 \begin{figure}[ht]
   \centering
@@ -377,6 +463,11 @@ Roger R. Bate, Donald D. Mueller y Jerry E. White.
 Howard D. Curtis.
 \textit{Orbital Mechanics for Engineering Students}. 4.a ed.,
 Butterworth-Heinemann, 2020.
+
+\bibitem{thornton2003}
+Stephen T. Thornton y Jerry B. Marion.
+\textit{Classical Dynamics of Particles and Systems}. 5.a ed.,
+Brooks/Cole, 2003. ISBN 0534408966.
 
 \bibitem{vallado2013}
 David A. Vallado.
