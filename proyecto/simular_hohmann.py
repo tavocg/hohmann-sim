@@ -8,10 +8,10 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 
-MU = 398600.4418  # km^3 s^-2, Tierra
+MU = 3.9845571e5  # km^3 s^-2, Tierra; equivale a 3.9845571e14 m^3 s^-2.
 R_EARTH = 6378.137  # km
 R1 = R_EARTH + 300.0
-R2 = 42164.0
+R2 = 42159.036216630644
 # Criterios de aceptacion: la orbita final debe parecerse a una circular GEO,
 # no solo pasar momentaneamente por el radio objetivo.
 SUCCESS_A_REL = 0.02

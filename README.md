@@ -37,14 +37,16 @@ $\ddot{\mathbf r}=-\mu\mathbf r/|\mathbf r|^3$
 
 Para el caso Tierra-GEO se usan:
 
-- $\mu = 398600.4418\,\mathrm{km^3/s^2}$
+- $\mu=GM_\oplus=(6.67430\times10^{-11})(5.97\times10^{24})
+  =3.9845571\times10^{14}\,\mathrm{m^3/s^2}
+  =3.9845571\times10^5\,\mathrm{km^3/s^2}$
 - $r_1 = 6678.137\,\mathrm{km}$
-- $r_2 = 42164\,\mathrm{km}$
+- $r_2 \approx 42159.036\,\mathrm{km}$
 
 Con esos valores, la transferencia ideal calculada en el reporte requiere:
 
-- $\Delta v_1 = 2.42573\,\mathrm{km/s}$
-- $\Delta v_2 = 1.46682\,\mathrm{km/s}$
+- $\Delta v_1 = 2.42521\,\mathrm{km/s}$
+- $\Delta v_2 = 1.46656\,\mathrm{km/s}$
 - $T_t = 5.275\,\mathrm{h}$
 
 Durante los tramos sin empuje se revisan la energía por unidad de masa

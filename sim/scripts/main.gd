@@ -1,9 +1,9 @@
 extends Node3D
 
-const MU := 398600.4418
+const MU := 3.9845571e5
 const R_EARTH := 6378.137
 const R1 := 6678.137
-const R2 := 42164.0
+const R2 := 42159.036216630644
 const KM_TO_UNIT := 0.001
 const EARTH_RADIUS_U := R_EARTH * KM_TO_UNIT
 const R1_U := R1 * KM_TO_UNIT

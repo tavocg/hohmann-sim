@@ -215,10 +215,29 @@ La simulación de Monte Carlo anticipa ese tipo de casos antes de ejecutar la ma
 
 \section{Descripción del problema}
 
-Se simula una transferencia desde una órbita baja terrestre circular de
-$r_1=6678.137\,\mathrm{km}$ hasta una órbita circular geoestacionaria de
-$r_2=42164\,\mathrm{km}$, con $\mu=398600.4418\,\mathrm{km^3\,s^{-2}}$. La
-condición inicial es $\mathbf r_0=(r_1,0)$ y
+Se simula una transferencia desde una órbita baja terrestre circular hasta una
+órbita circular geoestacionaria. Para la órbita inicial se toma una altitud de
+$300\,\mathrm{km}$ sobre el radio ecuatorial terrestre,
+$R_T=6378.137\,\mathrm{km}$; por tanto,
+\begin{equation}
+  r_1=R_T+300\,\mathrm{km}=6678.137\,\mathrm{km}.
+\end{equation}
+El radio objetivo es el radio geoestacionario aproximado,
+$r_2\simeq42159.036\,\mathrm{km}$, medido desde el centro de la Tierra. Este valor
+corresponde a una altitud de
+\begin{equation}
+  h_{\mathrm{GEO}}=r_2-R_T\simeq35780.899\,\mathrm{km},
+\end{equation}
+para la cual el periodo orbital circular coincide con el periodo de rotación
+terrestre. Se usa el parámetro gravitacional terrestre
+$\mu=GM_\oplus$, con $G=6.67430\times10^{-11}\,\mathrm{m^3\,kg^{-1}\,s^{-2}}$
+y $M_\oplus=5.97\times10^{24}\,\mathrm{kg}$. Por tanto,
+\begin{equation}
+  \mu=(6.67430\times10^{-11})(5.97\times10^{24})
+  =3.9845571\times10^{14}\,\mathrm{m^3\,s^{-2}}
+  =3.9845571\times10^{5}\,\mathrm{km^3\,s^{-2}}.
+\end{equation}
+La condición inicial es $\mathbf r_0=(r_1,0)$ y
 $\mathbf v_0=(0,\sqrt{\mu/r_1})$. Con estas constantes, la transferencia ideal
 requiere
 \begin{center}
@@ -226,8 +245,8 @@ requiere
 \toprule
 Cantidad & Valor & Unidad \\
 \midrule
-$\Delta v_1$ & 2.42573 & km/s \\
-$\Delta v_2$ & 1.46682 & km/s \\
+$\Delta v_1$ & 2.42521 & km/s \\
+$\Delta v_2$ & 1.46656 & km/s \\
 $T_t$ & 5.275 & h \\
 \bottomrule
 \end{tabular}
@@ -296,9 +315,9 @@ se rota la dirección tangencial por un error angular.
 
 \begin{Verbatim}[fontsize=\footnotesize]
 # Error de magnitud en km/s y error angular convertido a radianes.
-e1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
-a1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
-y1 = aplicar_impulso(y0, h.dv1, e1, a1)
+error_mag1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
+error_ang1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
+y1 = aplicar_impulso(y0, h.dv1, error_mag1, error_ang1)
 \end{Verbatim}
 
 Finalmente, Monte Carlo repite la transferencia y registra si la órbita final
@@ -315,8 +334,8 @@ probabilidad = float(np.mean(exitos))
 \end{Verbatim}
 
 La validación consistió en integrar una órbita circular completa sin impulsos.
-El error relativo máximo del radio fue $1.36\times10^{-10}$ y la variación
-relativa máxima de energía o momento angular fue $2.88\times10^{-10}$. Por eso,
+El error relativo máximo del radio fue $1.40\times10^{-10}$ y la variación
+relativa máxima de energía o momento angular fue $2.92\times10^{-10}$. Por eso,
 los cambios observados en Monte Carlo se atribuyen a los impulsos perturbados y
 no al error dominante del integrador.
 
@@ -428,7 +447,7 @@ físicamente posible pero no deseada: el semieje mayor queda desplazado, la
 excentricidad crece y el satélite ya no permanece cerca del radio geoestacionario
 durante toda la revolución. Para
 $\sigma_v=0.2\%$ y $\sigma_\theta=0.20^\circ$, el semieje mayor promedio fue
-$42171.4\,\mathrm{km}$ y la excentricidad media $0.0079$.
+$42166.4\,\mathrm{km}$ y la excentricidad media $0.0079$.
 
 \begin{figure}[ht]
   \centering
