@@ -86,7 +86,7 @@ direcciones perfectamente conocidas; sin embargo, una ejecución real tiene
 errores de navegación, medición y empuje. Este proyecto estudia qué tan robusta
 es la maniobra cuando los impulsos se perturban aleatoriamente.
 
-La pregunta de investigación es: ¿cuál es la probabilidad de terminar cerca de
+¿Cuál es la probabilidad de terminar cerca de
 la órbita objetivo si los impulsos de una transferencia de Hohmann tienen
 incertidumbre pequeña? Además se compara la sensibilidad ante errores de
 magnitud y dirección, se valida la conservación de invariantes durante tramos
@@ -197,18 +197,18 @@ el modelo de incertidumbre elegido. Aumentar $N$ no cambia ese valor esperado,
 pero reduce la dispersión estadística de la estimación.
 El objetivo de esta parte estocástica no es reemplazar la solución determinista
 de Hohmann, sino medir la confiabilidad de esa solución cuando la ejecución no
-es perfecta. Cada simulación representa una maniobra plausible: un motor que
+es perfecta. Cada simulación representa una maniobra plausible, por ejemplo, un motor que
 entrega un poco más o menos velocidad, o una orientación ligeramente desviada
 del vector tangencial ideal. Al repetir el experimento muchas veces se obtiene
 una distribución de órbitas finales, no un único resultado. Esa distribución
-permite estimar riesgo: qué fracción de trayectorias queda dentro de tolerancia,
+permite estimar riesgo, qué fracción de trayectorias queda dentro de tolerancia,
 cuáles fallan y por qué tipo de error fallan.
 
 Esto es importante porque una trayectoria indeseada puede parecer aceptable si
 solo se observa la posición instantánea. Por ejemplo, una nave puede llegar
 cerca de $r_2$ en el momento del segundo impulso, pero con velocidad demasiado
 alta por un error positivo en $\Delta v_1$. El segundo impulso entonces no
-circulariza bien: la órbita final queda elíptica, cruza la región objetivo una
+circulariza bien, la órbita final queda elíptica, cruza la región objetivo una
 sola vez y luego se aleja a un apoapsis mayor. En una misión real eso implicaría
 usar combustible adicional o perder una ventana de comunicación.
 La simulación de Monte Carlo anticipa ese tipo de casos antes de ejecutar la maniobra.
@@ -310,7 +310,7 @@ def calcular_hohmann(r1=R1, r2=R2, mu=MU):
     return Hohmann(vt1 - vc1, vc2 - vt2, tof, at)
 \end{Verbatim}
 
-La incertidumbre entra al aplicar cada impulso: se suma un error de magnitud y
+La incertidumbre entra al aplicar cada impulso y se suma un error de magnitud y
 se rota la dirección tangencial por un error angular.
 
 \begin{Verbatim}[fontsize=\footnotesize]
@@ -349,8 +349,8 @@ la elipse de transferencia de Hohmann. El satélite usa el modelo tridimensional
 \cite{nasaDawn3D} y se mueve con una trayectoria paramétrica basada en los
 mismos radios y constantes del modelo numérico.
 
-La simulación no reemplaza la integración Monte Carlo; su propósito es mostrar
-de forma geométrica la maniobra ideal: primero una órbita baja circular, luego
+La simulación no reemplaza la integración Monte Carlo, su propósito es mostrar
+de forma geométrica la maniobra ideal. Primero una órbita baja circular, luego
 la media elipse de transferencia y finalmente la órbita circular
 geoestacionaria. La cámara sólo orbita alrededor del satélite, de modo que el
 usuario observa la Tierra y las trayectorias desde el marco visual de la nave.
@@ -439,14 +439,12 @@ $P(\text{exito})$ & 1.000 & 1.000 & 1.000 & 0.963 & 0.838 & 0.578 \\
 \end{tabular}
 \end{center}
 
-La caída no es lineal: los errores muy pequeños casi siempre permanecen dentro
+Los errores muy pequeños permanecen dentro
 del criterio, pero a partir de $0.2\%$ la cola de la distribución empieza a
-producir órbitas con energía o excentricidad fuera de tolerancia. En esas
-simulaciones fallidas no se observa un ``choque'' numérico, sino una órbita
-físicamente posible pero no deseada: el semieje mayor queda desplazado, la
-excentricidad crece y el satélite ya no permanece cerca del radio geoestacionario
-durante toda la revolución. Para
-$\sigma_v=0.2\%$ y $\sigma_\theta=0.20^\circ$, el semieje mayor promedio fue
+producir órbitas con energía o excentricidad fuera de tolerancia.
+Físicamente posible pero no deseado, el semieje mayor queda desplazado, la
+excentricidad crece y el satélite ya no permanece cerca del radio geoestacionario.
+Para $\sigma_v=0.2\%$ y $\sigma_\theta=0.20^\circ$, el semieje mayor promedio fue
 $42166.4\,\mathrm{km}$ y la excentricidad media $0.0079$.
 
 \begin{figure}[ht]
@@ -459,34 +457,32 @@ $42166.4\,\mathrm{km}$ y la excentricidad media $0.0079$.
 
 \section{Discusión y alcances}
 
-La transferencia de Hohmann conserva su utilidad como diseño inicial: en el
+La transferencia de Hohmann se utiliza como diseño inicial, en el
 caso ideal coloca la nave en la órbita objetivo con los dos impulsos mínimos
 del modelo coplanar. Sin embargo, la simulación muestra que la maniobra no es
 igualmente robusta para todos los niveles de error. La incertidumbre en la
 magnitud cambia directamente la energía orbital, mientras que el error angular
-introduce componentes radial y normal al impulso tangencial esperado; ambos
+introduce componentes radial y normal al impulso tangencial esperado. Ambos
 efectos elevan la excentricidad y desplazan el semieje mayor final.
 
-El criterio usado es exigente pero realista para una primera circularización:
-no basta con estar cerca de $r_2$ en un instante, porque una órbita elíptica
-puede cruzar ese radio y aun así requerir correcciones posteriores. Las
-limitaciones principales son que se desprecia el arrastre atmosférico, no se
+El criterio usado es exigente pero realista para una primera circularización,
+Las limitaciones principales son que se desprecia el arrastre atmosférico, no se
 incluyen perturbaciones de la Luna, el Sol ni el achatamiento terrestre, se
 suponen impulsos instantáneos y el movimiento es estrictamente coplanar. Una
 extensión natural sería estimar el combustible de corrección necesario para las
-simulaciones fallidas.
+simulaciones fallidas, o agregar este tipo de incógnitas como una desviación mayor de la
+probabilidad en el modelo de Monte Carlo, para así estimar el riesgo de estos factores.
 
 \section{Conclusiones}
 
 El proyecto implementó una simulación numérica reproducible de una transferencia
-de Hohmann Tierra--GEO y la evaluó con Monte Carlo. La validación por
+de Hohmann y la evaluó con Monte Carlo. La validación por
 conservación de radio, energía y momento angular mostró que el error numérico es
-mucho menor que las perturbaciones estudiadas. Con incertidumbres de hasta
-$0.1\%$ en magnitud y $0.10^\circ$ en dirección, todas las simulaciones quedaron
-dentro del criterio de éxito; con $0.5\%$ y $0.50^\circ$, la probabilidad cayó a
-$0.578$. Monte Carlo resultó útil porque convierte errores pequeños de ejecución
-en una medida operacional: la probabilidad de terminar en una órbita final
-aceptable.
+mucho menor que las perturbaciones estudiadas.
+
+La probabilidad llego a caer hasta $0.578$.
+Monte Carlo resultó útil porque convierte errores pequeños de ejecución
+en la probabilidad de terminar en una órbita final aceptable.
 
 \begin{thebibliography}{9}
 
