@@ -17,8 +17,8 @@ const TOUCH_ORBIT_SENSITIVITY := 0.0022
 
 # Parametros de la elipse: periapsis en R1 y apoapsis en R2.
 var transfer_a := 0.5 * (R1 + R2)
-var transfer_e := (R2 - R1) / (R2 + R1)
-var transfer_p := transfer_a * (1.0 - transfer_e * transfer_e)
+var transfer_epsilon := (R2 - R1) / (R2 + R1)
+var transfer_p := transfer_a * (1.0 - transfer_epsilon * transfer_epsilon)
 var dv1 := 0.0
 var dv2 := 0.0
 var transfer_time_hours := 0.0
@@ -208,7 +208,7 @@ func _update_satellite(t: float) -> void:
 
 
 func transfer_radius(theta: float) -> float:
-	return transfer_p / (1.0 + transfer_e * cos(theta))
+	return transfer_p / (1.0 + transfer_epsilon * cos(theta))
 
 
 func _orbital_position(radius: float, theta: float) -> Vector3:
@@ -234,7 +234,7 @@ func _update_info(phase: String, radius_km: float, theta: float, elapsed_transfe
 		"Transferencia Tierra-GEO\n"
 		+ "Fase: %s\n" % phase
 		+ "r1 = %.3f km | r2 = %.0f km | mu = %.4f km^3/s^2\n" % [R1, R2, MU]
-		+ "a_t = (r1 + r2) / 2 = %.3f km | e_t = %.4f\n" % [transfer_a, transfer_e]
+		+ "a_t = (r1 + r2) / 2 = %.3f km | epsilon_t = %.4f\n" % [transfer_a, transfer_epsilon]
 		+ "v_c1 = %.4f km/s | v_c2 = %.4f km/s\n" % [vc1, vc2]
 		+ "Delta v1 = %.5f km/s | Delta v2 = %.5f km/s\n" % [dv1, dv2]
 		+ "T_t = pi * sqrt(a_t^3 / mu) = %.3f h | t = %.3f h\n" % [transfer_time_hours, current_hours]

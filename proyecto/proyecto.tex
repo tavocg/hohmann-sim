@@ -94,28 +94,43 @@ sin empuje y se mide el alejamiento de la órbita circular deseada.
 
 \section{Marco teórico}
 
-Se usa el problema restringido de dos cuerpos: una partícula de prueba se mueve
-bajo la gravedad de un cuerpo central de parámetro gravitacional $\mu=GM$,
+El punto de partida es el problema de fuerza central inversa al cuadrado
+tratado por Thornton y Marion en el capítulo de movimiento bajo fuerzas
+centrales \cite{thornton2003}. Para un cuerpo de masa $m$ atraído por una masa
+central $M$, se escribe $k=GMm$ y el potencial gravitatorio es
+$V(r)=-k/r$. En los tramos sin impulso se conservan la energía mecánica total
+y el momento angular,
 \begin{equation}
-  \ddot{\mathbf r}=-\frac{\mu}{r^3}\mathbf r .
+  E=\frac{1}{2}m v^2-\frac{k}{r}, \qquad
+  l=m|\mathbf r\times\mathbf v|.
 \end{equation}
-En ausencia de impulsos, la energía mecánica específica y el momento angular
-específico se conservan,
+
+Al dividir por $m$ y usar $\mu=GM=k/m$ se obtiene la
+cantidad que evalúa el código,
 \begin{equation}
-  E=\frac{1}{2}v^2-\frac{\mu}{r}, \qquad
-  h=|\mathbf r\times\mathbf v|.
+  \mathcal E=\frac{E}{m}
+  =\frac{1}{2}v^2-\frac{\mu}{r}, \qquad
+  h=\frac{l}{m}=|\mathbf r\times\mathbf v|.
 \end{equation}
-Estos invariantes sirven para verificar la integración numérica y para obtener
-el semieje mayor y la excentricidad de la órbita final \cite{vallado2013}:
+Para el potencial $-k/r$, el mismo desarrollo
+del problema de Kepler da
 \begin{equation}
-  a=-\frac{\mu}{2E}, \qquad
-  e=\sqrt{1+\frac{2Eh^2}{\mu^2}} .
+  E=-\frac{k}{2a}, \qquad
+  \epsilon=\sqrt{1+\frac{2El^2}{m k^2}},
 \end{equation}
+donde $a$ es el semieje mayor y $\epsilon$ es la excentricidad. Dividiendo por
+masa, estas relaciones equivalen a
+\begin{equation}
+  a=-\frac{\mu}{2\mathcal E}, \qquad
+  \epsilon=\sqrt{1+\frac{2\mathcal E h^2}{\mu^2}} .
+\end{equation}
+Estas son las expresiones usadas para verificar la integración numérica y para
+clasificar la órbita final.
 
 Para radios circulares $r_1$ y $r_2$, la elipse de transferencia tiene
 $a_t=(r_1+r_2)/2$. Siguiendo el desarrollo energético de una transferencia de
-Hohmann en \textit{Classical Dynamics of Particles and Systems}
-\cite{thornton2003}, si $k=GMm$ entonces la rapidez circular inicial es
+Hohmann en \textit{Classical Dynamics of Particles and Systems}, si $k=GMm$
+entonces la rapidez circular inicial es
 \begin{equation}
   v_1=\sqrt{\frac{k}{m r_1}}=\sqrt{\frac{\mu}{r_1}}.
 \end{equation}
@@ -134,10 +149,7 @@ de donde se despeja la rapidez en el periapsis de la transferencia,
   =\sqrt{\frac{2k}{m r_1}\left(\frac{r_2}{r_1+r_2}\right)}
   =\sqrt{\mu\left(\frac{2}{r_1}-\frac{1}{a_t}\right)}.
 \end{equation}
-El primer impulso es, por tanto,
-\begin{equation}
-  \Delta v_1=v_{t1}-v_1.
-\end{equation}
+El primer impulso es, por tanto, $\Delta v_1=v_{t1}-v_1$.
 De forma análoga, para circularizar en $r_2$ se usa
 \begin{equation}
   v_2=\sqrt{\frac{k}{m r_2}}=\sqrt{\frac{\mu}{r_2}},
@@ -150,14 +162,16 @@ y la rapidez de la elipse en el apoapsis es
 \end{equation}
 Así, el segundo impulso y el tiempo de vuelo son
 \begin{equation}
+  \label{eq:hohmann}
+  \Delta v_1=v_{t1}-v_1, \qquad
   \Delta v_2=v_2-v_{t2}, \qquad
   T_t=\pi\sqrt{\frac{a_t^3}{\mu}}.
 \end{equation}
 
 La incertidumbre se modela con variables normales independientes. Para cada
 impulso se perturba la magnitud con
-$\epsilon_v\sim\mathcal N(0,\sigma_v^2)$ y la dirección tangencial con
-$\epsilon_\theta\sim\mathcal N(0,\sigma_\theta^2)$. La probabilidad de éxito se
+$\delta_v\sim\mathcal N(0,\sigma_v^2)$ y la dirección tangencial con
+$\delta_\theta\sim\mathcal N(0,\sigma_\theta^2)$. La probabilidad de éxito se
 estima por Monte Carlo \cite{metropolis1949}:
 \begin{equation}
   P(\text{exito}) \approx \frac{N_{\text{exitosas}}}{N_{\text{total}}}.
@@ -196,9 +210,8 @@ cerca de $r_2$ en el momento del segundo impulso, pero con velocidad demasiado
 alta por un error positivo en $\Delta v_1$. El segundo impulso entonces no
 circulariza bien: la órbita final queda elíptica, cruza la región objetivo una
 sola vez y luego se aleja a un apoapsis mayor. En una misión real eso implicaría
-usar combustible adicional, perder una ventana de comunicación o entrar en una
-órbita que interfiere con corredores operacionales. La simulación Monte Carlo
-anticipa ese tipo de casos antes de ejecutar la maniobra.
+usar combustible adicional o perder una ventana de comunicación.
+La simulación de Monte Carlo anticipa ese tipo de casos antes de ejecutar la maniobra.
 
 \section{Descripción del problema}
 
@@ -221,7 +234,8 @@ $T_t$ & 5.275 & h \\
 \end{center}
 
 Una simulación se considera exitosa si, después del segundo impulso, el semieje
-mayor satisface $|a-r_2|/r_2<2\%$ y la excentricidad final cumple $e<0.02$.
+mayor satisface $|a-r_2|/r_2<2\%$ y la excentricidad final cumple
+$\epsilon<0.02$.
 Este criterio exige estar cerca de la energía orbital correcta y no solo cruzar
 el radio objetivo.
 
@@ -243,7 +257,8 @@ tolerancias estrictas sin introducir un error comparable con las perturbaciones
 de los impulsos. En cambio, el código de Godot no resuelve numéricamente la
 ecuación diferencial: la visualización usa la solución geométrica de Hohmann y
 evalúa directamente la ecuación polar de la elipse,
-$r(\theta)=p/(1+e\cos\theta)$, para ubicar el satélite durante la animación.
+$r(\theta)=p/(1+\epsilon\cos\theta)$, para ubicar el satélite durante la
+animación.
 Por eso la parte de GDScript es una representación paramétrica de la trayectoria
 ideal, no un integrador orbital independiente.
 
@@ -261,7 +276,8 @@ def aceleracion_gravitatoria(_t, y, mu=MU):
     return np.array([v[0], v[1], a[0], a[1]])
 \end{Verbatim}
 
-Luego se calculan los dos impulsos de Hohmann con la ecuación vis-viva:
+Luego se implementa la ecuación~\eqref{eq:hohmann}, junto con las velocidades
+de transferencia derivadas en el marco teórico:
 
 \begin{Verbatim}[fontsize=\footnotesize]
 def calcular_hohmann(r1=R1, r2=R2, mu=MU):
@@ -293,7 +309,7 @@ for i in range(n):
     # Cada iteración es una ejecución posible de los dos impulsos.
     res = simular_transferencia(sigma_mag_rel, sigma_ang_deg, rng)
     semiejes[i] = float(res["a"])
-    excentricidades[i] = float(res["e"])
+    excentricidades[i] = float(res["epsilon"])
     exitos[i] = bool(res["exito"])
 probabilidad = float(np.mean(exitos))
 \end{Verbatim}
@@ -320,7 +336,7 @@ la media elipse de transferencia y finalmente la órbita circular
 geoestacionaria. La cámara sólo orbita alrededor del satélite, de modo que el
 usuario observa la Tierra y las trayectorias desde el marco visual de la nave.
 Un panel en pantalla muestra cantidades usadas en el cálculo, entre ellas
-$r_1$, $r_2$, $\mu$, $a_t$, $e_t$, $\Delta v_1$, $\Delta v_2$ y $T_t$.
+$r_1$, $r_2$, $\mu$, $a_t$, $\epsilon_t$, $\Delta v_1$, $\Delta v_2$ y $T_t$.
 La simulación está publicada en \url{https://tavocg.github.io/hohmann-sim/}.
 
 Las líneas principales de \texttt{sim/scripts/main.gd} también están comentadas
@@ -331,8 +347,8 @@ del satélite se resumen así:
 \begin{Verbatim}[fontsize=\footnotesize]
 # Parametros de la elipse: periapsis en R1 y apoapsis en R2.
 var transfer_a := 0.5 * (R1 + R2)
-var transfer_e := (R2 - R1) / (R2 + R1)
-var transfer_p := transfer_a * (1.0 - transfer_e * transfer_e)
+var transfer_epsilon := (R2 - R1) / (R2 + R1)
+var transfer_p := transfer_a * (1.0 - transfer_epsilon * transfer_epsilon)
 
 func _calculate_hohmann() -> void:
     # Los mismos calculos del reporte se repiten aqui para mostrar valores.

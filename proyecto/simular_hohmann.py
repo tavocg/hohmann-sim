@@ -15,7 +15,7 @@ R2 = 42164.0
 # Criterios de aceptacion: la orbita final debe parecerse a una circular GEO,
 # no solo pasar momentaneamente por el radio objetivo.
 SUCCESS_A_REL = 0.02
-SUCCESS_E = 0.02
+SUCCESS_EPSILON = 0.02
 
 
 @dataclass(frozen=True)
@@ -89,11 +89,11 @@ def aplicar_impulso(
 
 
 def elementos_orbitales(y: np.ndarray, mu: float = MU) -> tuple[float, float]:
-    eps = energia(y, mu)
+    energia_especifica = energia(y, mu)
     h = momento_angular(y)
-    a = -mu / (2.0 * eps)
-    # max evita una excentricidad imaginaria por redondeo cuando e debe ser 0.
-    e2 = max(0.0, 1.0 + 2.0 * eps * h**2 / mu**2)
+    a = -mu / (2.0 * energia_especifica)
+    # max evita una excentricidad imaginaria por redondeo cuando epsilon debe ser 0.
+    e2 = max(0.0, 1.0 + 2.0 * energia_especifica * h**2 / mu**2)
     return a, np.sqrt(e2)
 
 
@@ -107,18 +107,18 @@ def simular_transferencia(
     h = calcular_hohmann()
     y0 = np.array([R1, 0.0, 0.0, np.sqrt(MU / R1)])
     # Primer impulso: inyecta la nave en la elipse de transferencia.
-    e1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
-    a1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
-    y1 = aplicar_impulso(y0, h.dv1, e1, a1)
+    error_mag1 = rng.normal(0.0, sigma_mag_rel * h.dv1)
+    error_ang1 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
+    y1 = aplicar_impulso(y0, h.dv1, error_mag1, error_ang1)
     _, ys = integrar_orbita(y1, h.tof, n=900 if trayectoria else 2)
     yf = ys[-1]
     # Segundo impulso: intenta circularizar en el apoapsis de la transferencia.
-    e2 = rng.normal(0.0, sigma_mag_rel * h.dv2)
-    a2 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
-    y2 = aplicar_impulso(yf, h.dv2, e2, a2)
-    a, ecc = elementos_orbitales(y2)
-    exito = abs(a - R2) / R2 < SUCCESS_A_REL and ecc < SUCCESS_E
-    return {"estado": y2, "a": a, "e": ecc, "exito": exito, "trayectoria": ys}
+    error_mag2 = rng.normal(0.0, sigma_mag_rel * h.dv2)
+    error_ang2 = rng.normal(0.0, np.deg2rad(sigma_ang_deg))
+    y2 = aplicar_impulso(yf, h.dv2, error_mag2, error_ang2)
+    a, epsilon = elementos_orbitales(y2)
+    exito = abs(a - R2) / R2 < SUCCESS_A_REL and epsilon < SUCCESS_EPSILON
+    return {"estado": y2, "a": a, "epsilon": epsilon, "exito": exito, "trayectoria": ys}
 
 
 def simular_monte_carlo(
@@ -132,11 +132,11 @@ def simular_monte_carlo(
         # Cada iteracion representa una ejecucion posible de los dos impulsos.
         res = simular_transferencia(sigma_mag_rel, sigma_ang_deg, rng)
         semiejes[i] = float(res["a"])
-        excentricidades[i] = float(res["e"])
+        excentricidades[i] = float(res["epsilon"])
         exitos[i] = bool(res["exito"])
     return {
         "a": semiejes,
-        "e": excentricidades,
+        "epsilon": excentricidades,
         "exito": exitos,
         "probabilidad": float(np.mean(exitos)),
     }
@@ -218,7 +218,7 @@ def main() -> None:
     print(f"validacion_invariantes_rel={err_inv:.2e}")
     print("probabilidades=" + ",".join(f"{p:.3f}" for p in probs))
     print(f"hist_media_a_km={np.mean(datos_hist['a']):.1f}")
-    print(f"hist_media_e={np.mean(datos_hist['e']):.4f}")
+    print(f"hist_media_epsilon={np.mean(datos_hist['epsilon']):.4f}")
 
 
 if __name__ == "__main__":

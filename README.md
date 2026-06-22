@@ -47,9 +47,10 @@ Con esos valores, la transferencia ideal calculada en el reporte requiere:
 - $\Delta v_2 = 1.46682\,\mathrm{km/s}$
 - $T_t = 5.275\,\mathrm{h}$
 
-Durante los tramos sin empuje se revisan energía mecánica específica y momento
-angular específico. Esto sirve para verificar que los cambios observados vienen
-de los impulsos perturbados y no de error dominante del integrador.
+Durante los tramos sin empuje se revisan la energía por unidad de masa
+$\mathcal E=E/m$ y el momento angular por unidad de masa. Esto sirve para
+verificar que los cambios observados vienen de los impulsos perturbados y no de
+error dominante del integrador.
 
 ## Simulación Monte Carlo
 
@@ -67,7 +68,7 @@ mayor y la excentricidad de la órbita final.
 Una simulación se considera exitosa si:
 
 - $|a-r_2|/r_2<2\%$
-- $e<0.02$
+- $\epsilon<0.02$
 
 Este criterio es importante porque estar cerca de $r_2$ en un instante no
 garantiza una órbita útil. Una trayectoria puede cruzar el radio objetivo, pero
@@ -104,7 +105,7 @@ ideal de forma geométrica:
 - órbita baja circular;
 - media elipse de transferencia de Hohmann;
 - órbita circular geoestacionaria;
-- panel con $r_1$, $r_2$, $\mu$, $a_t$, $e_t$, $\Delta v_1$,
+- panel con $r_1$, $r_2$, $\mu$, $a_t$, $\epsilon_t$, $\Delta v_1$,
   $\Delta v_2$ y $T_t$.
 
 La cámara orbita únicamente alrededor del satélite; se controla con arrastre
